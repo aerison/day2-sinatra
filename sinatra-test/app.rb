@@ -1,5 +1,20 @@
 require 'sinatra'
 require "sinatra/reloader"
+require 'rest-client'
+require 'json' #json>hash
+require 'httparty'
+require 'nokogiri'
+require 'uri'
+require 'date'
+require 'csv'
+
+before do
+    p "***********"
+    p params
+    p request.path_info
+    p request.fullpath
+    p "***********"
+end
 
 get '/' do
   'Hello world! welcome'
@@ -78,5 +93,79 @@ get '/randomgame' do
     @listrandom=list.sample
     @list_Img=list_Img[@listrandom]
     erb :list
+end
+
+
+get '/lotto' do
+    @lotto=(1...45).to_a.sample(6)    #(range).array로바꿈.샘플링
+    url="http://www.nlotto.co.kr/common.do?method=getLottoNumber&drwNo=809" #json
+   
+    @lotto_info=RestClient.get(url)
+    @lotto_hash=JSON.parse(@lotto_info)
+    @winner=[]
+    @lotto_hash.each do |k,v|
+        if k.include?('drwtNo')
+            #배열에 저장
+            #@winner.push 
+            @winner << v
+        end
+    end
+    
+    #winner와 lotto 비교하여, 몇개가 일치하는지
+    @matchnum= (@lotto&@winner).length
+    @bonusnum=@lotto_hash["bnusNo"]
+    
+    
+    # if @matchnum==6
+    #     @result="1등"
+    # elsif(@matchnum==5 && @lotto.include?(@bonusnum))
+    #     @result="2등"
+    # elsif(@matchnum==5) then @result="3등"
+    # elsif(@matchnum==4)
+    #     @result="4등"
+    # elsif(@matchnum==3)
+    #     @result="5등"
+    # else
+    #     @result="꽝"
+    # end
+    
+    case [@matchnum, @lotto.include?(@bonusnum)]
+    when [6, false] then @result="1등"
+    when [6, true] then @result="2등"    
+    when [6, false] then @result="3등"
+    when [6, false] then @result="4등"
+    when [6, false] then @result="5등"
+    else @result="loser" 
+    end
+    erb :lottosample #erb rendering
+end
+
+get '/form' do
+    erb :form
+end
+
+get '/search' do
+    @keyword = params[:keyword]
+    url='https://search.naver.com/search.naver?query='
+    #erb :search
+    redirect to (url +@keyword)
+end
+
+get '/opgg' do
+    erb :opgg
+end
+
+get '/opggresult' do
+    url='http://www.op.gg/summoner/userName='
+    @userName = params[:userName]
+    @encodeName=URI.encode(@userName)
+    @res=HTTParty.get(url+@encodeName)
+    @doc=Nokogiri::HTML(@res.body)
+    
+    @win =@doc.css("#SummonerLayoutContent > div.tabItem.Content.SummonerLayoutContent.summonerLayout-summary > div.SideContent > div.TierBox.Box > div.SummonerRatingMedium > div.TierRankInfo > div.TierInfo > span.WinLose > span.wins")
+    @lose =@doc.css("#SummonerLayoutContent > div.tabItem.Content.SummonerLayoutContent.summonerLayout-summary > div.SideContent > div.TierBox.Box > div.SummonerRatingMedium > div.TierRankInfo > div.TierInfo > span.WinLose > span.losses")
+    @rank =@doc.css("#SummonerLayoutContent > div.tabItem.Content.SummonerLayoutContent.summonerLayout-summary > div.SideContent > div.TierBox.Box > div.SummonerRatingMedium > div.TierRankInfo > div.TierRank > span")
+    
+    erb :opggresult
 end
 
