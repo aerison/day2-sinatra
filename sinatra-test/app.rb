@@ -63,3 +63,20 @@ get '/lunch-hash' do
     @menu_Img=menu_Img[@menurandom] #key에 접근
     erb :lunchhash
 end
+
+#day2
+
+get '/randomgame' do
+    list=["what","i","wanna","tell","you"]
+    list_Img={
+        "what"=>"http://img.etoday.co.kr/pto_db/2017/12/20171207095114_1161337_710_340.jpg",
+        "i"=>"https://ncache.ilbe.com/files/attach/new/20180108/377678/411676640/10276428416/dfee83ec5baaa464e9b84b1cbec9a469.jpg",
+        "wanna"=>"http://bingstory2.iptime.org/Exo/AppImg5//g88554473.png",
+        "tell"=>"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlKbukbTq5wqvjKPIPCWIthZdH42x5yAEizRxMHty1ekFGDII6",
+        "you"=>"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-LOAevOn9wtMAdaPpIQg601aPMKE_NOSYLCgWq_yPZj4221k-qw"
+    }
+    @listrandom=list.sample
+    @list_Img=list_Img[@listrandom]
+    erb :list
+end
+
